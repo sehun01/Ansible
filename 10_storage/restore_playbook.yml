@@ -1,0 +1,40 @@
+---
+- name: 스토리지 롤백
+  hosts: servers
+  become: true
+
+  tasks:
+    - name: /var/www 마운트 해제
+      ansible.posix.mount:
+        path: /var/www
+        state: unmounted
+
+    - name: /var/www fstab 항목 제거
+      ansible.posix.mount:
+        path: /var/www
+        state: absent_from_fstab
+
+    - name: weblv 삭제
+      community.general.lvol:
+        vg: webvg
+        lv: weblv
+        state: absent
+        force: true
+
+    - name: loglv 삭제
+      community.general.lvol:
+        vg: webvg
+        lv: loglv
+        state: absent
+        force: true
+
+    - name: webvg 삭제
+      community.general.lvg:
+        vg: webvg
+        state: absent
+
+    - name: /var/www 디렉터리 유지
+      ansible.builtin.file:
+        path: /var/www
+        state: directory
+        mode: '0755'

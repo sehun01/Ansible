@@ -1,0 +1,42 @@
+---
+# 1. 레포지토리 구성
+# 2. 패키지 설치  -  bsc, msmsms
+- name: 레포지토리 구성
+  hosts: servers
+  vars:
+    custom_pkg1: bsc
+    custom_pkg2: msmsms
+  tasks:
+    - name: 패키지 팩트 수집
+      ansible.builtin.package_facts:
+        manager: auto
+    
+    - name: 사용자 패키지를 위한 패키지 팩트 출력
+      ansible.builtin.debug:
+        msg: "[  OK  ] 사용자 패키지: {{ custom_pkg1 }}, {{ custom_pkg2 }}" 
+      when: 
+        - custom_pkg1 in ansible_facts["packages"]
+        - custom_pkg2 in ansible_facts["packages"]
+
+    - name: RPM Repo 구성
+      ansible.builtin.yum_repository:
+        file: example
+        name: examplerepo
+        description: Example repo
+        baseurl: http://192.168.10.10/repo
+        enabled: true
+        gpgcheck: true
+
+    - name: GPG Key 가져오기
+      ansieble.builtin.rpm_key:
+        state: present
+        key: http://192.168.10.10/repo/RON==PM-GPG-KEY-test
+
+    - name: 패키지 추가
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - "{{ custom_pkg1 }}"
+        - "{{ custom_pkg2 }}"
+

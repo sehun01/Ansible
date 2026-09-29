@@ -1,0 +1,59 @@
+---
+    ###################################
+    # 1) 패키지 설치 - httpd, firewalld
+    # 2) 웹서버 설정 - /var/www/html/index.html
+    # 3) 웹서비스 기동 - httpd.service, firewalld.service
+    # 4) 방화벽 등록 - http
+    ###################################
+    # 2. 웹 확인 
+    #  1) 웹 요청
+- name: 0) 웹 서버 설정
+  hosts: web1.example.com
+  tasks:
+
+    - name: 1) 패키지 설치 - (dnf) httpd, firewalld
+      ansible.builtin.dnf:
+        name:
+          - httpd
+          - firewalld
+        state: present
+
+    - name: 2) 웹서비스 설정 - (copy) /var/www/html/index.html
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        mode: '0644'
+
+    - name: 3) 웹서비스 기동 - (systemd) httpd.service
+      ansible.builtin.systemd:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: 3) 웹서비스 기동 - (systemd) firewalld.service
+      ansible.builtin.systemd:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: 4) 방화벽 등록 - http
+    #firewall-cmd --permanent --add-service=http
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: enabled
+
+- name: 1) 웹 요청 테스트
+  hosts: localhost
+  become: false
+  tasks:
+    - name: 1) web1.example.com으로 웹요청
+      ansible.builtin.uri:
+        url: http://web1.example.com
+        return_content: true
+        registr: html
+    - name: 응답
+
+      
+   

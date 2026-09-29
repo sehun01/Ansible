@@ -1,0 +1,9 @@
+---
+network_connections:
+  - name: ens224
+    type: ethernet
+    ip:잘못된 계산식
+      address:
+        - 192.168.10.21/24
+    state: up
+

@@ -1,0 +1,22 @@
+---
+#Play01 - 웹서버 설정
+# 1) 패키지 설치
+# 2) 서비스 기동
+# 3) 방화벽 등록
+- name: Install Apache and starts the service
+  hosts: webserver
+  tasks:
+    - name: 1) 패키지 설치
+      ansible.builtin.dnf:
+        name: "{{ ansible_local.custom.general.package }}"
+        state: latest
+    - name: 2) 서비스 기동
+      ansible.builtin.systemd_service:
+        name: "{{ ansible_local.custom.general.service }}"
+        state: "{{ ansible_local.custom.general.state }}"
+    - name: 3) 방화벽 등록
+      ansible.posix.firewalld:
+        service: "{{ ansible_local.custom.general.fwsvc }}"
+        permanent: yes
+        immediate: yes
+        state: enabled

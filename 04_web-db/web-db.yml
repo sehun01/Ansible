@@ -1,0 +1,65 @@
+---
+###########
+# 1. Play 01 : WEB-PHP-DB 구현
+# 1) WEB + PHP + Firewall
+# 2) DB
+# 2. Play 02: 웹 요청
+# 1) 웹 요청
+#############
+ # Play 1 - 웹-PHP-DB 구현
+    # 1. WEB Server + Firewall 설정
+    # 1) 패키지 설치
+    # 2) 서비스 설정
+    # 3) 서비스 기동
+    # 4) 방화벽 포트 등록
+    # 2. DB Server 설정
+    # 1) 패키지 설치
+    # 2) 서비스 기동
+    # 3) 서비스 설정
+    # 4) 방화벽 포트 등록
+    # Play 2 - 확인
+    ################################
+    # Play 1 - 웹-PHP-DB 구현
+    # 1. WEB Server + Firewall 설정
+    # 1) 패키지 설치
+    # * 웹 패키지: httpd, mod_ssl
+    # * 언어 패키지: php, php-mysqlnd, php-pdo
+    # * 방화벽 패키지: firewalld
+- name: 1. Play 01 - WEB-PHP-DB 구현
+  hosts: webservers
+  tasks:
+    # 1) WEB + PHP + Firewall
+    - name: 1) 패키지 설치 - httpd, mod_ssl, php, php-mysqlnd, php-pdo, firewalld
+      ansible.builtin.dnf:
+        name:
+          - httpd
+          - mod_ssl
+          - php
+          - php-mysqlnd
+          - php-pdo
+          - firewalld
+        state: present
+    - name: 2) 서비스 설정 - /var/www/html/index.php
+      ansible.builtin.get_url:
+        url: http://192.168.10.10/index.php.txt
+        dest: /var/www/html/index.php
+        mode: '0644'
+
+    - name: 3) 서비스 기동 - httpd, firewalld
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop:
+        - httpd
+        - firewalld
+
+    - name: 4) 방화벽 포트 등록 - http, https
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop:
+        - http
+        - https
